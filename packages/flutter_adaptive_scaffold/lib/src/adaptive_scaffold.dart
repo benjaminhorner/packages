@@ -101,6 +101,8 @@ class AdaptiveScaffold extends StatefulWidget {
     this.appBar,
     this.navigationRailWidth = 72,
     this.extendedNavigationRailWidth = 192,
+    this.useMaterial3 = false,
+    this.labelBehavior = NavigationDestinationLabelBehavior.onlyShowSelected,
   });
 
   /// The destinations to be used in navigation items. These are converted to
@@ -229,6 +231,16 @@ class AdaptiveScaffold extends StatefulWidget {
   /// [Breakpoint].
   final double extendedNavigationRailWidth;
 
+  /// Whether to use a [NavigationBar] over a [BottomNavigationBar]
+  ///
+  /// Defaults to false.
+  final bool useMaterial3;
+
+  /// The [NavigationDestinationLabelBehavior] to be used on the [NavigationBar]
+  ///
+  /// Defaults to [NavigationDestinationLabelBehavior.onlyShowSelected].
+  final NavigationDestinationLabelBehavior labelBehavior;
+
   /// Callback function for when the index of a [NavigationRail] changes.
   static WidgetBuilder emptyBuilder = (_) => const SizedBox();
 
@@ -319,6 +331,26 @@ class AdaptiveScaffold extends StatefulWidget {
               .map((NavigationDestination e) => _toBottomNavItem(e))
               .toList(),
           onTap: onDestinationSelected,
+        );
+      },
+    );
+  }
+
+  /// Public helper method to be used for creating a [NavigationBar] from
+  /// a list of [NavigationDestination]s.
+  static Builder material3NavigationBar({
+    required List<NavigationDestination> destinations,
+    int? currentIndex,
+    ValueChanged<int>? onDestinationSelected,
+  }) {
+    currentIndex ??= 0;
+    return Builder(
+      builder: (_) {
+        return NavigationBar(
+          labelBehavior: widget.labelBehavior,
+          destinations: destinations,
+          selectedIndex: currentIndex ?? 0,
+          onDestinationSelected: onDestinationSelected,
         );
       },
     );
@@ -532,12 +564,19 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
                       config: <Breakpoint, SlotLayoutConfig>{
                         widget.smallBreakpoint: SlotLayout.from(
                           key: const Key('bottomNavigation'),
-                          builder: (_) =>
-                              AdaptiveScaffold.standardBottomNavigationBar(
-                            currentIndex: widget.selectedIndex,
-                            destinations: widget.destinations,
-                            onDestinationSelected: widget.onSelectedIndexChange,
-                          ),
+                          builder: (_) => widget.useMaterial3
+                              ? AdaptiveScaffold.material3NavigationBar(
+                                  currentIndex: widget.selectedIndex,
+                                  destinations: widget.destinations,
+                                  onDestinationSelected:
+                                      widget.onSelectedIndexChange,
+                                )
+                              : AdaptiveScaffold.standardBottomNavigationBar(
+                                  currentIndex: widget.selectedIndex,
+                                  destinations: widget.destinations,
+                                  onDestinationSelected:
+                                      widget.onSelectedIndexChange,
+                                ),
                         ),
                       },
                     )
